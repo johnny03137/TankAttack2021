@@ -35,8 +35,14 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     {
         Debug.Log($"code = {returnCode}, msg = {message}");
 
-        // 룸을 생성
-        PhotonNetwork.CreateRoom("My Room");
+        // 룸 옵션 설정
+        RoomOptions ro = new RoomOptions();
+        ro.IsOpen = true;
+        ro.IsVisible = true;
+        ro.MaxPlayers = 30;
+
+        // 룸 생성
+        PhotonNetwork.CreateRoom("My Room", ro);
     }
         
     public override void OnCreatedRoom()    // 룸생성완료 콜백
@@ -48,5 +54,8 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     {
         Debug.Log("Room Entered Complete");
         Debug.Log(PhotonNetwork.CurrentRoom.Name);
+
+        // 통신이 가능한 주인공 캐릭터(탱크)
+        PhotonNetwork.Instantiate("Tank", new Vector3(0f, 5.0f, 0f), Quaternion.identity,0 );
     }
 }
