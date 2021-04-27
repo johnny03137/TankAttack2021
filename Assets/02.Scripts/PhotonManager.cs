@@ -3,31 +3,52 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
+using TMPro;
+using UnityEngine.UI;
 
 public class PhotonManager : MonoBehaviourPunCallbacks
 {
-
+    public TMP_InputField userIdText;
+    public TMP_InputField roomNameText;
 
     private readonly string gameVersion = "v1.0";
-    private string UserId = "Johnny";
+    private string userId = "Johnny";
 
 
     private void Awake()
     {
+        PhotonNetwork.AutomaticallySyncScene = true;
+
         // 게임버전 지정
         PhotonNetwork.GameVersion = gameVersion;
         // 게임 유저명 지정
-        PhotonNetwork.NickName = UserId;
+        // PhotonNetwork.NickName = userId;
 
         // 서버접속
         PhotonNetwork.ConnectUsingSettings();
+    }
 
+    private void Start()
+    {
+        userId = PlayerPrefs.GetString("USER_ID", $"USER_{Random.Range(0, 100):00}");
+        userIdText.text = userId;
+        PhotonNetwork.NickName = userId;
     }
 
     public override void OnConnectedToMaster()
     {
         Debug.Log("Connected to Photon Server!!");
-        PhotonNetwork.JoinRandomRoom();
+
+        // 랜덤 룸에 들어가는 메써드
+        // PhotonNetwork.JoinRandomRoom();
+
+        // 로비 입장
+        PhotonNetwork.JoinLobby();
+    }
+
+    public override void OnJoinedLobby()
+    {
+        Debug.Log("Entered Lobby!!");
     }
 
 
@@ -55,7 +76,26 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         Debug.Log("Room Entered Complete");
         Debug.Log(PhotonNetwork.CurrentRoom.Name);
 
+        if(PhotonNetwork.IsMasterClient)
+        {
+            PhotonNetwork.LoadLevel("BattleField");
+        }        
+
         // 통신이 가능한 주인공 캐릭터(탱크)
-        PhotonNetwork.Instantiate("Tank", new Vector3(0f, 5.0f, 0f), Quaternion.identity,0 );
+        // PhotonNetwork.Instantiate("Tank", new Vector3(0f, 5.0f, 0f), Quaternion.identity,0 );
+    }
+
+    public void OnLoginClick()
+    {
+        if( string.IsNullOrEmpty(userIdText.text))
+        {
+            userId = $"USER_{Random.Range(0, 100):00}";
+            userIdText.text = userId;
+        }
+
+        PlayerPrefs.SetString("USER_ID", userIdText.text);
+
+        PhotonNetwork.NickName = userIdText.text;
+        PhotonNetwork.JoinRandomRoom();
     }
 }
