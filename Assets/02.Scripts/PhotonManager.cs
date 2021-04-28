@@ -85,6 +85,9 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         // PhotonNetwork.Instantiate("Tank", new Vector3(0f, 5.0f, 0f), Quaternion.identity,0 );
     }
 
+
+    #region UI_BUTTON_CALLBACK
+
     public void OnLoginClick()
     {
         if( string.IsNullOrEmpty(userIdText.text))
@@ -96,6 +99,35 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         PlayerPrefs.SetString("USER_ID", userIdText.text);
 
         PhotonNetwork.NickName = userIdText.text;
-        PhotonNetwork.JoinRandomRoom();
+        PhotonNetwork.JoinRoom(roomNameText.text);
     }
+
+    public void OnMakeRoomClick()
+    {
+        // 룸 옵션 설정
+        RoomOptions ro = new RoomOptions();
+        ro.IsOpen = true;
+        ro.IsVisible = true;
+        ro.MaxPlayers = 30;
+
+        if(string.IsNullOrEmpty(roomNameText.text))
+        {
+            roomNameText.text = $"ROOM_{Random.Range(0, 100):000}";
+        }
+
+        // 룸 생성
+        PhotonNetwork.CreateRoom(roomNameText.text, ro);
+    }
+
+    // 룸 목록 수신
+    public override void OnRoomListUpdate(List<RoomInfo> roomList)  // 룸 목록이 변경될 떄 마다 호출되는 콜백
+    {
+        foreach(var room in roomList)
+        {
+            Debug.Log($"room name =  {room.Name}, ({room.PlayerCount}/{room.MaxPlayers})");
+        }
+
+    }
+
+    #endregion
 }
