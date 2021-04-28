@@ -10,20 +10,20 @@ public class TankControl : MonoBehaviour
     public GameObject cannonPrefab;
     public Transform firePos;
     public Transform cannonMesh;
+    public AudioClip fireSfx;
 
     Transform tr;
     PhotonView pv;
-
-
+    AudioSource audio;
 
     // Start is called before the first frame update
     void Start()
     {
-        tr = GetComponent<Transform>();
-        
+        tr = GetComponent<Transform>();        
         pv = GetComponent<PhotonView>();
+        audio = GetComponent<AudioSource>();
 
-        if(pv.IsMine)
+        if (pv.IsMine)
         {
             Camera.main.GetComponent<UnityStandardAssets.Utility.SmoothFollow>().target = tr.Find("CamPivot").transform;
             GetComponent<Rigidbody>().centerOfMass = new Vector3(0f, -5.0f, 0f);
@@ -62,6 +62,8 @@ public class TankControl : MonoBehaviour
     {
         var obj = Instantiate(cannonPrefab, firePos.position, firePos.rotation);
 
-        Destroy(obj.gameObject, 10f);
+        audio.PlayOneShot(fireSfx);
+
+        //Destroy(obj.gameObject, 10f);
     }
 }

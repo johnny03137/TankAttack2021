@@ -5,6 +5,7 @@ using UnityEngine;
 public class Cannon : MonoBehaviour
 {
     public float speed;
+    public GameObject explosionVfx;
 
     Rigidbody m_rigid;
 
@@ -14,5 +15,14 @@ public class Cannon : MonoBehaviour
     {
         m_rigid = GetComponent<Rigidbody>();
         m_rigid.AddRelativeForce(Vector3.forward * speed);
+    }
+
+    private void OnCollisionEnter(Collision other)
+    {
+        var obj = Instantiate(explosionVfx, transform.position, Quaternion.identity);
+
+        Destroy(obj, 3f);
+
+        Destroy(this.gameObject);
     }
 }
