@@ -10,10 +10,14 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 {
     public TMP_InputField userIdText;
     public TMP_InputField roomNameText;
+    public GameObject roomPrefab;
+    public Transform scrollContent;
 
     private readonly string gameVersion = "v1.0";
     private string userId = "Johnny";
 
+    Dictionary<string, GameObject> roomDict = new Dictionary<string, GameObject>();
+    
 
     private void Awake()
     {
@@ -85,6 +89,40 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         // PhotonNetwork.Instantiate("Tank", new Vector3(0f, 5.0f, 0f), Quaternion.identity,0 );
     }
 
+    // 룸 목록 수신
+    public override void OnRoomListUpdate(List<RoomInfo> roomList)  // 룸 목록이 변경될 떄 마다 호출되는 콜백
+    {
+        GameObject tempRoom = null;
+        foreach (var room in roomList)
+        {
+            if(room.RemovedFromList == true)
+            {                
+                if(roomDict.TryGetValue(room.Name, out tempRoom))
+                {
+                    Destroy(tempRoom);                                      // UI Prefab 삭제
+                    roomDict.Remove(room.Name);
+                }                
+            }
+            else
+            {
+                if(!roomDict.ContainsKey(room.Name))
+                {
+                    var obj = Instantiate(roomPrefab, scrollContent);   // 버튼 프리팹 생성해주고
+
+                    obj.GetComponent<RoomData>().RoomInfo = room;
+                    roomDict.Add(room.Name, obj);                       // 그걸 Dictionary에 추가
+                }
+                else
+                {
+                    roomDict.TryGetValue(room.Name, out tempRoom);
+                    tempRoom.GetComponent<RoomData>().RoomInfo = room;
+                }
+            }
+        }
+
+    }
+
+
 
     #region UI_BUTTON_CALLBACK
 
@@ -99,7 +137,21 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         PlayerPrefs.SetString("USER_ID", userIdText.text);
 
         PhotonNetwork.NickName = userIdText.text;
+
+        if(string.IsNullOrEmpty(roomNameText.text))
+        {
+            RoomOptions ro = new RoomOptions();
+            ro.IsOpen = true;
+            ro.IsVisible = true;
+            ro.MaxPlayers = 20;
+
+            roomNameText.text = $"ROOM_{Random.Range(0, 100):000}";
+
+            PhotonNetwork.CreateRoom(roomNameText.text, ro);
+        }
+
         PhotonNetwork.JoinRoom(roomNameText.text);
+
     }
 
     public void OnMakeRoomClick()
@@ -108,7 +160,7 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         RoomOptions ro = new RoomOptions();
         ro.IsOpen = true;
         ro.IsVisible = true;
-        ro.MaxPlayers = 30;
+        ro.MaxPlayers = 20;
 
         if(string.IsNullOrEmpty(roomNameText.text))
         {
@@ -117,16 +169,6 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
         // 룸 생성
         PhotonNetwork.CreateRoom(roomNameText.text, ro);
-    }
-
-    // 룸 목록 수신
-    public override void OnRoomListUpdate(List<RoomInfo> roomList)  // 룸 목록이 변경될 떄 마다 호출되는 콜백
-    {
-        foreach(var room in roomList)
-        {
-            Debug.Log($"room name =  {room.Name}, ({room.PlayerCount}/{room.MaxPlayers})");
-        }
-
     }
 
     #endregion

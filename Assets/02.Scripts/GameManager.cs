@@ -11,15 +11,27 @@ using TMPro;
 
 public class GameManager : MonoBehaviourPunCallbacks
 {
+    public static GameManager instance = null;
+
+    [Header("Chatting UI")]
+    public TMP_Text chatListText;
+    public TMP_InputField msgIF;
+
+    [Header("Game UI")]
     public TMP_Text roomNameText;
     public TMP_Text connectInfoText;
     public Button exitButton;
     public TMP_Text messageText;
 
+    private PhotonView pv;
+
+
 
     private void Awake()
     {
-        Vector3 pos = new Vector3(Random.Range(-150.0f, 150.0f), 5.0f, Random.Range(-150.0f, 150.0f));
+        instance = this;
+
+        Vector3 pos = new Vector3(Random.Range(-150.0f, 150.0f), 15.0f, Random.Range(-150.0f, 150.0f));
 
         // 통신이 가능한 주인공 캐릭터(탱크)
         PhotonNetwork.Instantiate("Tank", pos, Quaternion.identity, 0 );
@@ -28,6 +40,8 @@ public class GameManager : MonoBehaviourPunCallbacks
     private void Start()
     {
         SetRoomInfo();
+
+        pv = GetComponent<PhotonView>();
     }
 
     void SetRoomInfo()
@@ -60,5 +74,17 @@ public class GameManager : MonoBehaviourPunCallbacks
         SetRoomInfo();
         string msg = $"\n<color=#ff0000>{otherPlayer.NickName}</color> is lefted room";
         messageText.text += msg;
+    }
+
+    public void OnSendClick()
+    {
+        string _msg = $"<color=#00ff00>[{PhotonNetwork.NickName}]</color> {msgIF.text}";
+        pv.RPC("SendChatMessage", RpcTarget.AllBufferedViaServer, _msg);
+    }
+
+    [PunRPC]
+    void SendChatMessage(string msg)
+    {
+        chatListText.text += $"{msg}\n";
     }
 }

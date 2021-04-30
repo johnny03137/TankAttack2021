@@ -7,6 +7,8 @@ public class Cannon : MonoBehaviour
     public float speed;
     public GameObject explosionVfx;
 
+    public string shooter;
+
     Rigidbody m_rigid;
 
 
